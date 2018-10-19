@@ -23,6 +23,9 @@ $requestSchemaFile= "$path/ShipAcceptRequest.xsd";
 $responseSchemaFile= "$path/ShipAcceptResponse.xsd";
 
 $outputFileName = "XOLTResult.xml";
+
+$acceptFileName = "ShipAcceptRequest.xml";
+
 #********
 @XML = (); # Array to hold request
 
@@ -70,6 +73,10 @@ my $shipacceptrequest =
 $xml = $writer->($doc , $shipacceptrequest);
 $doc->setDocumentElement($xml);
 push(@XML , $doc->toString());
+
+open(fw,">$acceptFileName");
+print fw $doc->toString();
+close(fw);
 
 #Send HTTP Request
 my $browser = LWP::UserAgent->new();   

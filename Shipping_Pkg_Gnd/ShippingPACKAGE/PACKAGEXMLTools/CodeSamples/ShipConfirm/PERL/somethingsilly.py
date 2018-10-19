@@ -5,11 +5,13 @@ Created on Thu Sep 20 18:27:14 2018
 
 @author: x0dros
 """
-#import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 import xmlschema
 import requests
 import AccessRequest as arq  
 import ShipConfirmRequest as scr
+import ShipAcceptRequest as sar
+import base64
 #import sys
 #sys.path.append('/Users/x0dros/anaconda3/lib/python3.6/site-packages')
 #import untangle 
@@ -18,13 +20,15 @@ accReq_filen = '/Users/x0dros/Downloads/Shipping_Pkg_Gnd/ShippingPACKAGE/PACKAGE
 shConfReq_filen = '/Users/x0dros/Downloads/Shipping_Pkg_Gnd/ShippingPACKAGE/PACKAGEXMLTools/CodeSamples/ShipConfirm/PERL/ShipConfirmRequest.xml'
 xmldeclaration = '<?xml version="1.0" encoding="UTF-8"?>'
 shConfReq_sch_n = '/Users/x0dros/Downloads/Shipping_Pkg_Gnd/ShippingPACKAGE/PACKAGEXMLTools/Schemas/ShipConfirmRequest.xsd'
+shAcceptReq_sch_n = '/Users/x0dros/Downloads/Shipping_Pkg_Gnd/ShippingPACKAGE/PACKAGEXMLTools/Schemas/ShipAcceptRequest.xsd'
 shConReq_schema = xmlschema.XMLSchema(shConfReq_sch_n)
+shAcceptReq_schema = xmlschema.XMLSchema(shAcceptReq_sch_n)
 ups_shc_url = "https://wwwcie.ups.com/ups.app/xml/ShipConfirm"
-
+ups_sha_url = "https://wwwcie.ups.com/ups.app/xml/ShipAccept"
                         #Access request:
-AccessLicenseNumber= '2D4DAB13C33EF228'
-UserId= 'yourusername'
-Password= 'makeyourowndamnpassword!'
+AccessLicenseNumber= '111111'
+UserId= 'somebody'
+Password= 'something'
 my_ar = arq.AccessRequest()
 my_ar.set_AccessLicenseNumber(AccessLicenseNumber)
 my_ar.set_UserId(UserId)
@@ -240,23 +244,21 @@ my_ticdt3 = scr.TaxIDCodeDescType()
 my_ticdt3.set_Code(Code_3)
 my_ticdt3.set_Description(Description_3)
 
-my_ift3 = scr.InternationalFormsType()
-my_ift3.set_FormType(FormType_3)
-ftype_given = my_ift3.get_FormType()
-print('\n' + "".join(ftype_given) + '\n')
-my_ift3.set_Product(Product_3)
-my_ift3.set_InvoiceNumber(InvoiceNumber_3)
-my_ift3.set_InvoiceDate(InvoiceDate_3)
-my_ift3.set_PurchaseOrderNumber(PurchaseOrderNumber_3)
-my_ift3.set_TermsOfShipment(TermsOfShipment_3)
-my_ift3.set_ReasonForExport(ReasonForExport_3)
-my_ift3.set_Comments(Comments_3)
-my_ift3.set_DeclarationStatement(DeclarationStatement_3)
-my_ift3.set_Discount(Discount_3)
-my_ift3.set_FreightCharges(FreightCharges_3)
-my_ift3.set_InsuranceCharges(InsuranceCharges_3)
-my_ift3.set_OtherCharges(OtherCharges_3)
-my_ift3.set_CurrencyCode(CurrencyCode_3)
+#my_ift3 = scr.InternationalFormsType() #Not necessary!
+#my_ift3.set_FormType(FormType_3)
+#my_ift3.set_Product(Product_3)
+#my_ift3.set_InvoiceNumber(InvoiceNumber_3)
+#my_ift3.set_InvoiceDate(InvoiceDate_3)
+#my_ift3.set_PurchaseOrderNumber(PurchaseOrderNumber_3)
+#my_ift3.set_TermsOfShipment(TermsOfShipment_3)
+#my_ift3.set_ReasonForExport(ReasonForExport_3)
+#my_ift3.set_Comments(Comments_3)
+#my_ift3.set_DeclarationStatement(DeclarationStatement_3)
+#my_ift3.set_Discount(Discount_3)
+#my_ift3.set_FreightCharges(FreightCharges_3)
+#my_ift3.set_InsuranceCharges(InsuranceCharges_3)
+#my_ift3.set_OtherCharges(OtherCharges_3)
+#my_ift3.set_CurrencyCode(CurrencyCode_3)
 
 #    my_ift3.add_FormType(self, value): self.FormType.append(value)
 #    my_ift3.insert_FormType_at(self, index, value): self.FormType.insert(index, value)
@@ -324,7 +326,7 @@ AttentionNameST_2 = 'Marley Brinson'
 PhoneNumberST_2 = '97225377171'
 AddressST_2 = my_stat3
 
-InternationalForms = my_ift3
+#InternationalForms = my_ift3 #not necessary 
 
 NegotiatedRatesIndicator_2 = ''
 RateChartIndicator_2 = ''
@@ -401,7 +403,7 @@ my_stt2.set_Address(AddressST_2)
 #my_stt2.set_LocationID(LocationID)
 
 my_ssot2 = scr.ShipmentServiceOptionsType()
-my_ssot2.set_InternationalForms(InternationalForms)
+#my_ssot2.set_InternationalForms(InternationalForms) # Not necessary!
 
 
 my_spt2 = scr.ShipperType()
@@ -540,12 +542,87 @@ with open(outfile_sc_n, 'r') as myfile:
     
 # append the two strings 
 req_str = ar_str + '\n' + scr_str
-#print(req_str)
+print(req_str)
 
-r = requests.post(url = ups_shc_url, data = req_str) 
-# extracting response text  
-pastebin_url = r.text 
+sc_resp = requests.post(url = ups_shc_url, data = req_str) 
+#parse the response XML as an element tree
+sc_xml_root = ET.fromstring(sc_resp.content)
+# extract the response text  
+pastebin_url = sc_resp.text 
 print("The pastebin URL is:%s"%pastebin_url) 
+
+# Check if the response was a success
+for rsps in sc_xml_root.findall('Response'):
+    sc_stat_desc = rsps.find('ResponseStatusDescription').text
+    
+if sc_stat_desc == 'Success':
+    print(sc_stat_desc)
+    #Get Shipment digest and shipment id numbers from the reponse
+    shpmnt_dgst = sc_xml_root.find('ShipmentDigest').text
+    shpmnt_idn = sc_xml_root.find('ShipmentIdentificationNumber').text
+    #print(shpmnt_dgst)
+    #print(shpmnt_idn)
+    
+# Shipment Accept Request:    
+    #Level 1:
+    RequestAction1 = '01'  # What does it mean? No clue! 
+    my_sarRequest = sar.RequestType()
+    my_sarRequest.set_RequestAction(RequestAction1)
+    
+    #Level 0:
+    ShipmentDigest0 = shpmnt_dgst   
+    my_sa = sar.ShipmentAcceptRequest()
+    my_sa.set_Request(my_sarRequest)
+    my_sa.set_ShipmentDigest(ShipmentDigest0)
+    
+    outfile_sa_n = "shaccept_req.xml"
+    outfile_sa = open(outfile_sa_n, "w")
+    my_sa.export(outfile_sa, 0, pretty_print=True)
+    outfile_sa.close()
+
+    #check if it follows the schema:
+    shAcceptReq_schema.is_valid(outfile_sa_n)
+
+    # parse the xml file and save it in a string
+    
+    with open(outfile_sa_n, 'r') as myfile:
+        sar_str =myfile.read().replace('\n', '')
+    
+    # append the two strings 
+    acreq_str = ar_str + '\n' + sar_str
+    print(acreq_str)
+
+    sa_resp = requests.post(url = ups_sha_url, data = acreq_str)
+    
+    sa_xml_root = ET.fromstring(sa_resp.content)
+    # extract the response text  
+    pastebin_url_sa = sa_resp.text 
+    print("The pastebin URL is:%s"%pastebin_url_sa) 
+
+    # Check if the response was a success
+    for sa_rsps in sa_xml_root.findall('Response'):
+        sa_stat_desc = sa_rsps.find('ResponseStatusDescription').text
+        
+    if sa_stat_desc == 'Success':
+        for node_sa in sa_xml_root.iter('GraphicImage'):
+            graphicImage_b64_str = node_sa.text;
+            print(graphicImage_b64_str)
+                
+        rxLabel_b64 = base64.b64decode(graphicImage_b64_str)
+        rxLabel_b64_fname = 'UPS_label_py.gif'
+        with open(rxLabel_b64_fname, 'wb') as labelf:
+                labelf.write(rxLabel_b64)
+    else:
+        print('\n Something went wrong. ShipAcceptRequest Failed! \n')
+            
+else:
+    print('\n ShipConfirmRequest failed!\n')
+                
+    
+    
+    
+    
+
 
 # pack access req and shipment confrimr req and send them to UPS
 # 1 Append Sh Conf Req to Acc Req              Done

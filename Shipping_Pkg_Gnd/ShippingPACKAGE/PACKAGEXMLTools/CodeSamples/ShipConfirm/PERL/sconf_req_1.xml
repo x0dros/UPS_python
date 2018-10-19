@@ -86,52 +86,7 @@
             <Code>08</Code>
             <Description>UPS Expedited</Description>
         </Service>
-        <ShipmentServiceOptions>
-            <InternationalForms>
-                <FormType>01</FormType>
-                <Product>
-                    <Description>Product 1</Description>
-                    <Unit>
-                        <Number>147</Number>
-                        <Value>478</Value>
-                        <UnitOfMeasurement>
-                            <Code>BOX</Code>
-                            <Description>BOX</Description>
-                        </UnitOfMeasurement>
-                    </Unit>
-                    <CommodityCode>111222AA</CommodityCode>
-                    <OriginCountryCode>US</OriginCountryCode>
-                    <ProductWeight>
-                        <UnitOfMeasurement>
-                            <Code>LBS</Code>
-                            <Description>LBS</Description>
-                        </UnitOfMeasurement>
-                        <Weight>10</Weight>
-                    </ProductWeight>
-                </Product>
-                <InvoiceNumber>asdf123</InvoiceNumber>
-                <InvoiceDate>20151225</InvoiceDate>
-                <PurchaseOrderNumber>999jjj777</PurchaseOrderNumber>
-                <TermsOfShipment>CFR</TermsOfShipment>
-                <ReasonForExport>Sale</ReasonForExport>
-                <Comments>Your Comments</Comments>
-                <DeclarationStatement>Your Declaration Statement</DeclarationStatement>
-                <Discount>
-                    <MonetaryValue>100</MonetaryValue>
-                </Discount>
-                <FreightCharges>
-                    <MonetaryValue>50</MonetaryValue>
-                </FreightCharges>
-                <InsuranceCharges>
-                    <MonetaryValue>200</MonetaryValue>
-                </InsuranceCharges>
-                <OtherCharges>
-                    <MonetaryValue>50</MonetaryValue>
-                    <Description>Misc</Description>
-                </OtherCharges>
-                <CurrencyCode>USD</CurrencyCode>
-            </InternationalForms>
-        </ShipmentServiceOptions>
+        <ShipmentServiceOptions/>
         <Package>
             <Description>Package Description</Description>
             <PackagingType>
