@@ -26,7 +26,7 @@ shAcceptReq_schema = xmlschema.XMLSchema(shAcceptReq_sch_n)
 ups_shc_url = "https://wwwcie.ups.com/ups.app/xml/ShipConfirm"
 ups_sha_url = "https://wwwcie.ups.com/ups.app/xml/ShipAccept"
                         #Access request:
-AccessLicenseNumber= '111111'
+AccessLicenseNumber= 'what?'
 UserId= 'somebody'
 Password= 'something'
 my_ar = arq.AccessRequest()
@@ -542,21 +542,20 @@ with open(outfile_sc_n, 'r') as myfile:
     
 # append the two strings 
 req_str = ar_str + '\n' + scr_str
-print(req_str)
+#print(req_str)
 
 sc_resp = requests.post(url = ups_shc_url, data = req_str) 
 #parse the response XML as an element tree
 sc_xml_root = ET.fromstring(sc_resp.content)
 # extract the response text  
 pastebin_url = sc_resp.text 
-print("The pastebin URL is:%s"%pastebin_url) 
+#print("The pastebin URL is:%s"%pastebin_url) 
 
 # Check if the response was a success
 for rsps in sc_xml_root.findall('Response'):
     sc_stat_desc = rsps.find('ResponseStatusDescription').text
     
 if sc_stat_desc == 'Success':
-    print(sc_stat_desc)
     #Get Shipment digest and shipment id numbers from the reponse
     shpmnt_dgst = sc_xml_root.find('ShipmentDigest').text
     shpmnt_idn = sc_xml_root.find('ShipmentIdentificationNumber').text
@@ -590,7 +589,7 @@ if sc_stat_desc == 'Success':
     
     # append the two strings 
     acreq_str = ar_str + '\n' + sar_str
-    print(acreq_str)
+    #print(acreq_str)
 
     sa_resp = requests.post(url = ups_sha_url, data = acreq_str)
     
@@ -606,17 +605,22 @@ if sc_stat_desc == 'Success':
     if sa_stat_desc == 'Success':
         for node_sa in sa_xml_root.iter('GraphicImage'):
             graphicImage_b64_str = node_sa.text;
-            print(graphicImage_b64_str)
+            #print(graphicImage_b64_str)
                 
         rxLabel_b64 = base64.b64decode(graphicImage_b64_str)
         rxLabel_b64_fname = 'UPS_label_py.gif'
         with open(rxLabel_b64_fname, 'wb') as labelf:
                 labelf.write(rxLabel_b64)
     else:
-        print('\n Something went wrong. ShipAcceptRequest Failed! \n')
+        for sa_err in sa_xml_root.iter('Error'):
+            sa_err_desc = sa_err.find('ErrorDescription').text
+        print('\nShipAcceptRequest Failed! \nError Description: "'+ sa_err_desc + '"\n')
             
 else:
-    print('\n ShipConfirmRequest failed!\n')
+    for sc_err in sc_xml_root.iter('Error'):
+        sc_err_desc = sc_err.find('ErrorDescription').text
+        
+    print('\nShipConfirmRequest failed!\nError Description: "' + sc_err_desc + '" \n')
                 
     
     
